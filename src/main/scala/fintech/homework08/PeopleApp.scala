@@ -9,33 +9,26 @@ import java.time.LocalDate
 // Добавьте в DBRes методы map и flatMap и перепешите код используя for
 // и выполняя execute только один раз
 
-
 object PeopleApp extends PeopleModule {
-
   val uri = "jdbc:h2:~/dbres"
 
-  def getOldPerson(): Person =
+  def getOldPerson: DBResOp[Person] =
     DBRes.select("SELECT * FROM people WHERE birthday < ?",
-                 List(LocalDate.of(1979, 2, 20)))(readPerson).execute(uri).head
+                 List(LocalDate.of(1979, 2, 20)))(readPerson).map(_.head)
 
-  def clonePerson(person: Person): Person = {
+  def clonePerson(person: Person): DBResOp[Person] = {
     val clone = person.copy(birthday = LocalDate.now())
-    storePerson(clone).execute(uri)
-    clone
+    storePerson(clone).map(_ => clone)
   }
 
   def main(args: Array[String]): Unit = {
-    setup(uri)
-
-    val old = getOldPerson()
-    val clone = clonePerson(old)
-
-    /*val clon: Person = for {
+    val program = for {
       _ <- setup(uri)
-      old <- getOldPerson()
-      clon2 <- clonePerson(old)
-    } yield clon2*/
+      old <- getOldPerson
+      clone <- clonePerson(old)
+    } yield clone
 
-    println(clone)
+    val result = DBRes(program.operation).execute(uri)
+    println(result)
   }
 }

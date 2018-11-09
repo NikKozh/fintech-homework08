@@ -16,12 +16,13 @@ case class DBRes[A](run: Connection => A) {
 }
 
 object DBRes {
-  def select[A](sql: String, params: Seq[Any])(read: ResultSet => A): DBRes[List[A]] = DBRes { conn =>
+  def select[A](sql: String, params: Seq[Any])
+               (read: ResultSet => A): DBResOp[List[A]] = DBResOp { conn =>
     val rs = prepare(sql, params, conn).executeQuery()
     readResultSet(rs, read)
   }
 
-  def update(sql: String, params: Seq[Any]): DBRes[Unit] = DBRes { conn =>
+  def update(sql: String, params: Seq[Any]): DBResOp[Unit] = DBResOp { conn =>
     prepare(sql, params, conn).executeUpdate()
   }
 
@@ -43,10 +44,9 @@ object DBRes {
   }
 }
 
-case class DBResOp[A](execute: DBRes[A] => A) {
-  def map[B](f: A => B): DBResOp[B] = DBResOp(_ => f(execute(_)))
+case class DBResOp[A](operation: Connection => A) {
+  def map[B](f: A => B): DBResOp[B] = DBResOp(conn => f(operation(conn)))
 
-  def flatMap[B](f: A => DBResOp[B]): DBResOp[B] = {
-    ???
-  }
+  def flatMap[B](f: A => DBResOp[B]): DBResOp[B] =
+    DBResOp(conn => f(operation(conn)).operation(conn))
 }
