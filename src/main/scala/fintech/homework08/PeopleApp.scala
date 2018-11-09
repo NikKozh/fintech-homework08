@@ -21,13 +21,15 @@ object PeopleApp extends PeopleModule {
     storePerson(clone).map(_ => clone)
   }
 
-  def main(args: Array[String]): Unit = {
-    val program = for {
+  def program: DBResOp[Person] = {
+    for {
       _ <- setup(uri)
       old <- getOldPerson
       clone <- clonePerson(old)
     } yield clone
+  }
 
+  def main(args: Array[String]): Unit = {
     val result = DBRes(program.operation).execute(uri)
     println(result)
   }

@@ -6,6 +6,8 @@ import scala.collection.mutable.ListBuffer
 
 case class DBRes[A](run: Connection => A) {
   def execute(uri: String): A = {
+    DBRes.connectCount += 1 // только для теста
+
     println("Opening connection to DB...")
     val conn = DriverManager.getConnection(uri)
     val res = run(conn)
@@ -16,6 +18,8 @@ case class DBRes[A](run: Connection => A) {
 }
 
 object DBRes {
+  var connectCount = 0 // только для теста
+
   def select[A](sql: String, params: Seq[Any])
                (read: ResultSet => A): DBResOp[List[A]] = DBResOp { conn =>
     val rs = prepare(sql, params, conn).executeQuery()
