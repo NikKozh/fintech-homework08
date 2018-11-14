@@ -17,4 +17,9 @@ class PeopleAppSpec extends FlatSpec with Matchers {
   it should "connect to database only once" in {
     DBRes.connectCount should be(1)
   }
+
+  it should "call methods after flatMap only once" in {
+    getCount   should be(1)
+    cloneCount should be(1)
+  }
 }
