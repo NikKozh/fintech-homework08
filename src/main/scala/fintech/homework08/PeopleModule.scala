@@ -16,7 +16,7 @@ trait PeopleModule {
     Person(name, bd)
   }
 
-  def setup(uri: String): DBResOp[Unit] = {
+  def setup(uri: String): DBResOp[Unit] = DBResOp { _ =>
     DBRes.update("DROP TABLE people", List.empty)
     DBRes.update("CREATE TABLE people(name VARCHAR(256), birthday DATE)", List.empty)
 
