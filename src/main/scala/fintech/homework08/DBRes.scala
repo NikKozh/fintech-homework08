@@ -27,11 +27,13 @@ object DBRes {
 
   def select[A](sql: String, params: Seq[Any])
                (read: ResultSet => A): DBRes[List[A]] = DBRes { conn =>
+    println(s"Calling select method with sql: $sql, params: $params")
     val rs = prepare(sql, params, conn).executeQuery()
     readResultSet(rs, read)
   }
 
   def update(sql: String, params: Seq[Any]): DBRes[Unit] = DBRes { conn =>
+    println(s"Calling update method with sql: $sql, params: $params")
     prepare(sql, params, conn).executeUpdate()
   }
 
