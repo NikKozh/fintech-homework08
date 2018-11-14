@@ -6,7 +6,7 @@ import java.time.LocalDate
 trait PeopleModule {
   case class Person(name: String, birthday: LocalDate)
 
-  def storePerson(p: Person): DBResOp[Unit] =
+  def storePerson(p: Person): DBRes[Unit] =
     DBRes.update("INSERT INTO people(name, birthday) VALUES (?, ?)", List(p.name, p.birthday))
 
   val readPerson: ResultSet => Person = { rs =>
@@ -16,7 +16,7 @@ trait PeopleModule {
     Person(name, bd)
   }
 
-  def setup(uri: String): DBResOp[Unit] = DBResOp { _ =>
+  def setup(uri: String): DBRes[Unit] = DBRes { _ =>
     DBRes.update("DROP TABLE people", List.empty)
     DBRes.update("CREATE TABLE people(name VARCHAR(256), birthday DATE)", List.empty)
 

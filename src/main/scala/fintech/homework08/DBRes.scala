@@ -5,6 +5,11 @@ import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 import scala.collection.mutable.ListBuffer
 
 case class DBRes[A](run: Connection => A) {
+  def map[B](f: A => B): DBRes[B] = DBRes(conn => f(run(conn)))
+
+  def flatMap[B](f: A => DBRes[B]): DBRes[B] =
+    DBRes(conn => f(run(conn)).run(conn))
+  
   def execute(uri: String): A = {
     DBRes.connectCount += 1 // только для теста
 
@@ -21,12 +26,12 @@ object DBRes {
   var connectCount = 0 // только для теста
 
   def select[A](sql: String, params: Seq[Any])
-               (read: ResultSet => A): DBResOp[List[A]] = DBResOp { conn =>
+               (read: ResultSet => A): DBRes[List[A]] = DBRes { conn =>
     val rs = prepare(sql, params, conn).executeQuery()
     readResultSet(rs, read)
   }
 
-  def update(sql: String, params: Seq[Any]): DBResOp[Unit] = DBResOp { conn =>
+  def update(sql: String, params: Seq[Any]): DBRes[Unit] = DBRes { conn =>
     prepare(sql, params, conn).executeUpdate()
   }
 
@@ -46,11 +51,4 @@ object DBRes {
     }
     buffer.toList
   }
-}
-
-case class DBResOp[A](operation: Connection => A) {
-  def map[B](f: A => B): DBResOp[B] = DBResOp(conn => f(operation(conn)))
-
-  def flatMap[B](f: A => DBResOp[B]): DBResOp[B] =
-    DBResOp(conn => f(operation(conn)).operation(conn))
 }

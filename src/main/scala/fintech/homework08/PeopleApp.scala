@@ -12,16 +12,16 @@ import java.time.LocalDate
 object PeopleApp extends PeopleModule {
   val uri = "jdbc:h2:~/dbres"
 
-  def getOldPerson: DBResOp[Person] =
+  def getOldPerson: DBRes[Person] =
     DBRes.select("SELECT * FROM people WHERE birthday < ?",
                  List(LocalDate.of(1979, 2, 20)))(readPerson).map(_.head)
 
-  def clonePerson(person: Person): DBResOp[Person] = {
+  def clonePerson(person: Person): DBRes[Person] = {
     val clone = person.copy(birthday = LocalDate.now())
     storePerson(clone).map(_ => clone)
   }
 
-  def program: DBResOp[Person] = {
+  def program: DBRes[Person] = {
     for {
       _ <- setup(uri)
       old <- getOldPerson
@@ -30,7 +30,7 @@ object PeopleApp extends PeopleModule {
   }
 
   def main(args: Array[String]): Unit = {
-    val result = DBRes(program.operation).execute(uri)
+    val result = DBRes(program.run).execute(uri)
     println(result)
   }
 }

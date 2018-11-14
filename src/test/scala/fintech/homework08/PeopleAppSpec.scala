@@ -8,7 +8,7 @@ class PeopleAppSpec extends FlatSpec with Matchers {
 
   behavior of "People App"
 
-  val result: Person = DBRes(program.operation).execute(uri)
+  val result: Person = DBRes(program.run).execute(uri)
 
   it should "return right result" in {
     result should be(Person("Alice", LocalDate.now()))
